@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.env
+.venv/
+env/
+venv/
+
+# Node & Frontend
+node_modules/
+frontend/node_modules/
+
+# Ignore DNS-Challenge repository and datasets (prevents embedded repo warning and keeps repo < 15MB)
+DNS-Challenge/
+*.tar.bz2
+*.tar.gz
+*.zip
+
+# Audio scratch tests & temporary outputs
+test_*.wav
+sample_clean_target.wav
+sample_noisy_input.wav
+sample_enhanced_output.wav
+enhanced_sample*.wav
+enhanced_demo_output.wav
+scratch/
+.system_generated/
