@@ -7,7 +7,7 @@ import AudioCompare from './components/AudioCompare';
 import MetricsCard from './components/MetricsCard';
 import { Upload, Mic, AlertCircle, CheckCircle2 } from 'lucide-react';
 
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || import.meta.env.API_BASE_URL || '').replace(/\/$/, '');
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('upload'); // 'upload' or 'mic'
