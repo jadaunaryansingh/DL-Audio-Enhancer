@@ -1,3 +1,4 @@
+import os
 import torch
 import torch.nn as nn
 
@@ -81,6 +82,22 @@ def load_model(checkpoint_path="audio_enhancer_model.pth", device=None):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
     model = AudioEnhancer().to(device)
+    
+    # Auto-resolve path if not immediately found
+    if not os.path.exists(checkpoint_path):
+        candidates = [
+            os.path.join(os.path.dirname(__file__), checkpoint_path),
+            os.path.join(os.path.dirname(__file__), "..", checkpoint_path),
+            os.path.join(os.getcwd(), checkpoint_path),
+            os.path.join(os.getcwd(), "backend", checkpoint_path),
+            os.path.join(os.path.dirname(__file__), "audio_enhancer_model.pth"),
+            os.path.join(os.path.dirname(__file__), "..", "audio_enhancer_model.pth"),
+        ]
+        for c in candidates:
+            if os.path.exists(c):
+                checkpoint_path = c
+                break
+
     try:
         state_dict = torch.load(checkpoint_path, map_location=device, weights_only=True)
         model.load_state_dict(state_dict)

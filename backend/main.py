@@ -1,7 +1,9 @@
 import os
+import sys
 import glob
 import platform
 import subprocess
+from pathlib import Path
 import soundfile as sf
 import numpy as np
 from fastapi import FastAPI, File, UploadFile, Form, HTTPException
@@ -9,8 +11,20 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 
-from backend.model import load_model
-from backend.enhancer import read_audio_bytes, wav_to_base64, enhance_audio
+# Ensure both current directory and parent directory are in sys.path
+# This guarantees imports succeed whether running from repo root or inside backend/
+current_dir = Path(__file__).resolve().parent
+parent_dir = current_dir.parent
+for p in [str(current_dir), str(parent_dir)]:
+    if p not in sys.path:
+        sys.path.insert(0, p)
+
+try:
+    from backend.model import load_model
+    from backend.enhancer import read_audio_bytes, wav_to_base64, enhance_audio
+except (ImportError, ModuleNotFoundError):
+    from model import load_model
+    from enhancer import read_audio_bytes, wav_to_base64, enhance_audio
 
 app = FastAPI(
     title="Deep Learning Audio Enhancer API",
@@ -51,7 +65,24 @@ def get_cpu_info():
     return platform.processor() or "CPU"
 
 # Initialize model on startup
-CHECKPOINT_PATH = "audio_enhancer_model.pth"
+def find_checkpoint():
+    env_path = os.environ.get("CHECKPOINT_PATH")
+    if env_path and os.path.exists(env_path):
+        return env_path
+    candidates = [
+        os.path.join(os.path.dirname(__file__), "audio_enhancer_model.pth"),
+        os.path.join(os.path.dirname(__file__), "..", "audio_enhancer_model.pth"),
+        os.path.join(os.getcwd(), "audio_enhancer_model.pth"),
+        os.path.join(os.getcwd(), "backend", "audio_enhancer_model.pth"),
+        "audio_enhancer_model.pth"
+    ]
+    for c in candidates:
+        abs_c = os.path.abspath(c)
+        if os.path.exists(abs_c):
+            return abs_c
+    return "audio_enhancer_model.pth"
+
+CHECKPOINT_PATH = find_checkpoint()
 model, device = load_model(CHECKPOINT_PATH)
 
 
@@ -174,7 +205,16 @@ def get_sample_audio(sample_id: str, strength: float = 1.05):
     }
 
 
-# Mount built React static files if present (for Render production)
+# Mount built React static files if present (for unified Render deployment)
 frontend_dist = os.path.join(os.path.dirname(__file__), "..", "frontend", "dist")
 if os.path.exists(frontend_dist):
     app.mount("/", StaticFiles(directory=frontend_dist, html=True), name="frontend")
+else:
+    @app.get("/")
+    def root():
+        return {
+            "name": "Deep Learning Audio Enhancer API",
+            "status": "online",
+            "docs": "/docs",
+            "health": "/api/health"
+        }
