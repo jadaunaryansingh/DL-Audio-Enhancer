@@ -7,6 +7,8 @@ import AudioCompare from './components/AudioCompare';
 import MetricsCard from './components/MetricsCard';
 import { Upload, Mic, AlertCircle, CheckCircle2 } from 'lucide-react';
 
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+
 export default function App() {
   const [activeTab, setActiveTab] = useState('upload'); // 'upload' or 'mic'
   const [isProcessing, setIsProcessing] = useState(false);
@@ -22,7 +24,7 @@ export default function App() {
 
   // Fetch API Health & Hardware Diagnostics
   useEffect(() => {
-    fetch('/api/health')
+    fetch(`${API_BASE_URL}/api/health`)
       .then(res => res.json())
       .then(data => setHealthInfo(data))
       .catch(err => {
@@ -40,7 +42,7 @@ export default function App() {
       formData.append('file', file);
       formData.append('strength', strengthValue.toString());
 
-      const res = await fetch('/api/enhance', {
+      const res = await fetch(`${API_BASE_URL}/api/enhance`, {
         method: 'POST',
         body: formData
       });
@@ -76,7 +78,7 @@ export default function App() {
     setIsProcessing(true);
     setErrorMsg(null);
     try {
-      const res = await fetch(`/api/samples/${presetId}?strength=${strength}`);
+      const res = await fetch(`${API_BASE_URL}/api/samples/${presetId}?strength=${strength}`);
       if (!res.ok) {
         throw new Error(`Failed to load preset sample: ${res.statusText}`);
       }

@@ -18,11 +18,16 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Enable CORS for local React development
+# Enable CORS for local React development and Vercel frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=[
+        "https://dl-audio-enhancer.vercel.app",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "*"
+    ],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
